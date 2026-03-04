@@ -1,10 +1,10 @@
-"""
+“””
 app.py — VIGILE · Intelligence Politique Française
 Application Streamlit principale.
 
 Lancement local :  streamlit run app.py
 Déploiement     :  Streamlit Cloud (streamlit.io)
-"""
+“””
 
 import streamlit as st
 import pandas as pd
