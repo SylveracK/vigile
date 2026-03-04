@@ -12,7 +12,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import pytz
-import anthropic
+from groq import Groq
 import time
 
 from sources.rss_medias import fetch_flux, sources_disponibles, CATEGORIES
@@ -201,21 +201,30 @@ def charger_articles(sources_selectionnees):
 return fetch_flux(sources=sources_selectionnees, max_par_source=10)
 
 def appel_ia(prompt: str) -> str:
-“”“Appelle l’API Anthropic Claude pour une analyse.”””
+“”“Appelle Groq (gratuit) pour une analyse IA.”””
 try:
-api_key = st.secrets.get(“ANTHROPIC_API_KEY”, “”)
+api_key = st.secrets.get(“GROQ_API_KEY”, “”)
 if not api_key:
-return “⚠️ Clé API Anthropic non configurée. Ajoutez ANTHROPIC_API_KEY dans les secrets Streamlit.”
-client = anthropic.Anthropic(api_key=api_key)
-message = client.messages.create(
-model=“claude-sonnet-4-20250514”,
+return “⚠️ Clé GROQ_API_KEY non configurée dans les secrets Streamlit.”
+client = Groq(api_key=api_key)
+response = client.chat.completions.create(
+model=“llama-3.1-8b-instant”,
+messages=[
+{
+“role”: “system”,
+“content”: “Tu es un analyste politique expert en politique française et relations internationales. Analyses concises, précises, sans parti pris. Toujours en français. 3-4 phrases maximum.”
+},
+{
+“role”: “user”,
+“content”: prompt
+}
+],
 max_tokens=600,
-system=“Tu es un analyste politique expert en politique française et relations internationales. Analyses concises, précises, sans parti pris. Toujours en français. 3-4 phrases maximum.”,
-messages=[{“role”: “user”, “content”: prompt}],
+temperature=0.4,
 )
-return message.content[0].text
+return response.choices[0].message.content
 except Exception as e:
-return f”Erreur API : {e}”
+return f”Erreur Groq : {e}”
 
 # ── Sidebar ──────────────────────────────────────────────────────────────────
 
